@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISDocHub</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        const { useState } = React;
+
+        function App() {
+            const [credentials, setCredentials] = useState({ username: '', password: '' });
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [documents] = useState([
+                { id: 1, title: 'Sample Document 1', member: 'Sirazdeen', category: 'Personal' },
+                { id: 2, title: 'Sample Document 2', member: 'Rahima Banu', category: 'Academic' }
+            ]);
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(credentials)
+                    });
+
+                    if (response.ok) {
+                        setIsLoggedIn(true);
+                    } else {
+                        alert('Invalid credentials');
+                    }
+                } catch (error) {
+                    alert('Login failed');
+                }
+            };
+
+            if (isLoggedIn) {
+                return React.createElement('div', { className: 'min-h-screen bg-gray-50' },
+                    React.createElement('header', { className: 'bg-white shadow p-4' },
+                        React.createElement('div', { className: 'flex justify-between items-center' },
+                            React.createElement('h1', { className: 'text-2xl font-bold text-blue-600' }, 'ISDocHub'),
+                            React.createElement('button', {
+                                onClick: () => setIsLoggedIn(false),
+                                className: 'px-4 py-2 bg-red-600 text-white rounded'
+                            }, 'Logout')
+                        )
+                    ),
+                    React.createElement('main', { className: 'p-6' },
+                        React.createElement('h2', { className: 'text-xl mb-4' }, 'Documents'),
+                        React.createElement('div', { className: 'grid gap-4' },
+                            documents.map(doc => 
+                                React.createElement('div', {
+                                    key: doc.id,
+                                    className: 'bg-white p-4 rounded shadow'
+                                },
+                                    React.createElement('h3', { className: 'font-semibold' }, doc.title),
+                                    React.createElement('p', { className: 'text-blue-600' }, doc.member),
+                                    React.createElement('p', { className: 'text-gray-600' }, doc.category)
+                                )
+                            )
+                        )
+                    )
+                );
+            }
+
+            return React.createElement('div', {
+                className: 'min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800'
+            },
+                React.createElement('div', { className: 'bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4' },
+                    React.createElement('div', { className: 'text-center mb-8' },
+                        React.createElement('h1', { className: 'text-3xl font-bold text-blue-600 mb-2' }, 'ISDocHub'),
+                        React.createElement('p', { className: 'text-gray-600' }, 'Family Document Management')
+                    ),
+                    React.createElement('form', { onSubmit: handleLogin, className: 'space-y-6' },
+                        React.createElement('input', {
+                            type: 'text',
+                            placeholder: 'Username',
+                            value: credentials.username,
+                            onChange: (e) => setCredentials({...credentials, username: e.target.value}),
+                            className: 'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-600',
+                            required: true
+                        }),
+                        React.createElement('input', {
+                            type: 'password',
+                            placeholder: 'Password',
+                            value: credentials.password,
+                            onChange: (e) => setCredentials({...credentials, password: e.target.value}),
+                            className: 'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-600',
+                            required: true
+                        }),
+                        React.createElement('button', {
+                            type: 'submit',
+                            className: 'w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700'
+                        }, 'Login')
+                    ),
+                    React.createElement('div', { className: 'mt-6 text-center text-sm text-gray-500' },
+                        React.createElement('p', null, 'Username: ISDocHub'),
+                        React.createElement('p', null, 'Password: ISFamily@2025')
+                    )
+                )
+            );
+        }
+
+        ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+</body>
+</html>

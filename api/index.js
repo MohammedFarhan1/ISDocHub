@@ -1,36 +1,25 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-let isConnected = false;
-
-const connectDB = async () => {
-  if (isConnected) return;
+module.exports = async (req, res) => {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    isConnected = true;
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
-};
 
-app.post('/api/auth/login', async (req, res) => {
-  await connectDB();
-  
-  try {
+  const { url, method } = req;
+
+  // Login endpoint
+  if (url === '/api/auth/login' && method === 'POST') {
     const { username, password } = req.body;
     
     if (username === 'ISDocHub' && password === 'ISFamily@2025') {
       const token = jwt.sign(
         { username: 'ISDocHub', role: 'user' },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || 'ISDocHub_Family_Secret_Key_2025',
         { expiresIn: '24h' }
       );
       
@@ -40,43 +29,65 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
     
-    res.status(401).json({ message: 'Invalid credentials' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    return res.status(401).json({ message: 'Invalid credentials' });
   }
-});
 
-app.get('/api/docs', async (req, res) => {
-  try {
+  // Documents endpoint
+  if (url.startsWith('/api/docs') && method === 'GET') {
     const sampleDocs = [
       {
         _id: '1',
-        title: 'Sample Document 1',
+        title: 'Family Photo Album',
         memberName: 'Sirazdeen',
         category: 'Personal Documents',
-        fileName: 'sample1.pdf',
+        fileName: 'photos.pdf',
+        fileSize: '2.1 MB',
+        uploadDate: new Date('2024-01-15')
+      },
+      {
+        _id: '2',
+        title: 'Birth Certificate',
+        memberName: 'Rahima Banu',
+        category: 'Personal Documents',
+        fileName: 'birth_cert.pdf',
+        fileSize: '850 KB',
+        uploadDate: new Date('2024-02-10')
+      },
+      {
+        _id: '3',
+        title: 'Degree Certificate',
+        memberName: 'Isful Shafan',
+        category: 'Academic Certificates',
+        fileName: 'degree.pdf',
+        fileSize: '1.5 MB',
+        uploadDate: new Date('2024-03-05')
+      },
+      {
+        _id: '4',
+        title: 'Passport Copy',
+        memberName: 'Majeejul Irfan',
+        category: 'Personal Documents',
+        fileName: 'passport.pdf',
         fileSize: '1.2 MB',
-        uploadDate: new Date()
+        uploadDate: new Date('2024-04-12')
+      },
+      {
+        _id: '5',
+        title: 'Work Experience Letter',
+        memberName: 'Mohammed Farhan',
+        category: 'Work & Experience Documents',
+        fileName: 'experience.pdf',
+        fileSize: '900 KB',
+        uploadDate: new Date('2024-05-20')
       }
     ];
     
-    res.json(sampleDocs);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    return res.json(sampleDocs);
   }
-});
 
-app.get('*', (req, res) => {
-  res.send(`
-    <html>
-    <head><title>ISDocHub</title></head>
-    <body style="font-family: Arial; text-align: center; padding: 50px;">
-      <h1>ISDocHub API</h1>
-      <p>Family Document Management System</p>
-      <p>API is running!</p>
-    </body>
-    </html>
-  `);
-});
-
-module.exports = app;
+  // Default response
+  res.status(200).json({ 
+    message: 'ISDocHub API is running!',
+    endpoints: ['/api/auth/login', '/api/docs']
+  });
+};
